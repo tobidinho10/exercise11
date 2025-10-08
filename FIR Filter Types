@@ -1,0 +1,90 @@
+% EXERCISE 11: FIR Filter Types (I-IV) Analysis
+% This script analyzes and plots the magnitude, unwrapped phase, and
+% pole-zero diagrams for four specified FIR impulse responses, corresponding
+% to the four types of linear-phase FIR filters.
+
+clear; close all;
+
+% --- 1. Define Impulse Responses ---
+% Note: L is the filter length (M+1).
+
+% FIR Type I: L is even, Symmetric (h(n) = h(L-1-n))
+h1 = [1 2 3 4 4 3 2 1];     % L=8
+% FIR Type II: L is odd, Symmetric (h(n) = h(L-1-n))
+h2 = [1 2 3 4 3 2 1];       % L=7
+% FIR Type III: L is even, Antisymmetric (h(n) = -h(L-1-n), h(L-1)/2 = 0)
+% NOTE: The user-provided vector h3 = [-1 -2 -3 -4 3 3 2 1] is NOT perfectly antisymmetric
+% as h(3) = -4 and -h(4) = -3. We use the provided vector as instructed.
+h3 = [-1 -2 -3 -4 3 3 2 1]; % L=8
+% FIR Type IV: L is odd, Antisymmetric (h(n) = -h(L-1-n), h((L-1)/2) = 0)
+h4 = [-1 -2 -3 0 3 2 1];    % L=7
+
+% Array of filter responses and corresponding titles
+H_filters = {h1, h2, h3, h4};
+Titles = {
+    'Type I: L=8, Symmetric',
+    'Type II: L=7, Symmetric',
+    'Type III: L=8, Antisymmetric',
+    'Type IV: L=7, Antisymmetric'
+};
+
+% --- 2. Setup Figure ---
+figure('Name', 'Exercise 11 - FIR Filter Types Comparison', 'Position', [100, 100, 1200, 800]);
+sgtitle('Comparison of FIR Filter Types (Magnitude, Phase, and Pole-Zero)', 'FontSize', 14, 'FontWeight', 'bold');
+
+% --- 3. Loop and Plot for each filter type ---
+num_rows = 4;
+num_cols = 3;
+N_freq = 512; % Number of frequency points for freqz
+
+for i = 1:num_rows
+    h = H_filters{i};
+    filter_title = Titles{i};
+    
+    % Calculate Frequency Response
+    % The '1' in freqz(h, 1, ...) indicates the FIR filter's denominator (A=1)
+    [H, w] = freqz(h, 1, N_freq);
+    
+    % --- Column 1: Magnitude Response |H(e^{j\omega})| ---
+    subplot(num_rows, num_cols, (i-1)*num_cols + 1);
+    plot(w/pi, abs(H), 'LineWidth', 1.5, 'Color', '#0072BD');
+    grid on;
+    title(['|H|: ' filter_title], 'FontSize', 10);
+    xlabel('Normalized Frequency (\omega/\pi)');
+    ylabel('Magnitude');
+    xlim([0 1]);
+    
+    % --- Column 2: Unwrapped Phase Response (rad) ---
+    subplot(num_rows, num_cols, (i-1)*num_cols + 2);
+    plot(w/pi, unwrap(angle(H)), 'LineWidth', 1.5, 'Color', '#D95319');
+    grid on;
+    title(['Phase (Unwrapped): ' filter_title], 'FontSize', 10);
+    xlabel('Normalized Frequency (\omega/\pi)');
+    ylabel('Phase (radians)');
+    xlim([0 1]);
+    
+    % --- Column 3: Pole-Zero Diagram ---
+    subplot(num_rows, num_cols, (i-1)*num_cols + 3);
+    zplane(h, 1);
+    title(['Pole-Zero Plot: ' filter_title], 'FontSize', 10);
+    % Set axis limits for better viewing of unit circle
+    axis([-1.5 1.5 -1.5 1.5]);
+    
+    % Annotate Linear Phase Characteristics
+    if i == 1 % Type I
+        text(1.2, 0.5, 'Linear Phase: Constant Group Delay', 'FontSize', 8, 'Color', 'k', 'BackgroundColor', [1 1 1]);
+    elseif i == 2 % Type II
+        text(1.2, 0.5, 'Linear Phase: Group Delay + Zero at \pi', 'FontSize', 8, 'Color', 'k', 'BackgroundColor', [1 1 1]);
+    elseif i == 3 % Type III
+        text(1.2, 0.5, 'Near Linear Phase: Phase Jumps by \pi', 'FontSize', 8, 'Color', 'k', 'BackgroundColor', [1 1 1]);
+    elseif i == 4 % Type IV
+        text(1.2, 0.5, 'Near Linear Phase: Half-Sample Delay', 'FontSize', 8, 'Color', 'k', 'BackgroundColor', [1 1 1]);
+    end
+
+end
+
+% Adjust layout for better spacing
+set(gcf, 'PaperPositionMode', 'auto');
+% print('fir_filter_comparison', '-dpng', '-r300'); % Use this command to export the figure.
+
+disp('Script finished.  generated and displayed.');
